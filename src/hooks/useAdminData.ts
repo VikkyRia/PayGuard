@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/useAuth";
-import { toast } from "sonner";
 
 export type DisputeStatus =
   | "pending_evidence"
@@ -81,27 +80,17 @@ export function useAdminData(): AdminData {
   );
 
 useEffect(() => {
-  // 1. Define the function INSIDE the effect
-  const fetchAll = async () => {
-    try {
-      // Your supabase logic here
-      const { data, error } = await supabase.from('transactions').select('*');
-      if (error) throw error;
-      
-      // Update your state
-      setTransactions(data); 
-    } catch (err: any) {
-      toast.error(err.message);
+  // Define a local caller to isolate the state update logic
+  const init = async () => {
+    if (isAdmin) {
+      await fetchAll();
     }
   };
 
-  // 2. Only call it if the condition is met
-  if (isAdmin) {
-    fetchAll();
-  }
-
-  // 3. Dependency array is now super clean
-}, [isAdmin]);
+  init();
+  // We only want this to run when the Admin status changes
+  // or the fetchAll identity (rarely) changes.
+}, [isAdmin, fetchAll]);
 
   return {
     transactions,

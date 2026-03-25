@@ -45,16 +45,16 @@ const Navbar = () => {
           ) : (
             <>
               <Link to="/auth">
-                <Button variant="ghost" size="sm">Log In</Button>
+                <Button variant="ghost" size="lg">Log In</Button>
               </Link>
               <Link to="/auth">
-                <Button size="sm">Get Started →</Button>
+                <Button size="lg">Get Started</Button>
               </Link>
             </>
           )}
         </div>
 
-        <button className="md:hidden text-foreground" onClick={() => setMobileOpen(!mobileOpen)}>
+        <button type="button" className="md:hidden text-foreground" onClick={() => setMobileOpen(!mobileOpen)}>
           {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
