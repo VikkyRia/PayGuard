@@ -1,0 +1,25 @@
+project_id = "kojzlkawtyktvgubgkby"
+
+[functions.create-checkout]
+verify_jwt = false
+
+[functions.payment-webhook]
+verify_jwt = false
+
+[functions.confirm-payment]
+verify_jwt = false
+
+[functions.update-delivery]
+verify_jwt = false
+
+[functions.verify-kyc]
+verify_jwt = false
+
+[functions.raise-dispute]
+verify_jwt = false
+
+[functions.auto-release]
+verify_jwt = false
+
+[functions.send-notification]
+verify_jwt = false

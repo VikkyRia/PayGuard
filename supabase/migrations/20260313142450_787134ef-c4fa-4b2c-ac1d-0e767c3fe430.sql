@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS nin_verified boolean NOT NULL DEFAULT false;
