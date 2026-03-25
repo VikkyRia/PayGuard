@@ -3,6 +3,7 @@
     "allowJs": true,
     "noImplicitAny": false,
     "noUnusedLocals": false,
+    "strict": false,
     "noUnusedParameters": false,
     "paths": {
       "@/*": [

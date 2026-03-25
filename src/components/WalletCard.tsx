@@ -156,7 +156,7 @@ const WalletCard = () => {
                       required
                     >
                       <option value="">Select account</option>
-                      {data.bankAccounts.map((b) => (
+                      {data.bankAccounts.map((b:any) => (
                         <option key={b.id} value={b.id}>
                           {b.bank_name} - {b.account_number} ({b.account_name})
                         </option>
@@ -221,11 +221,11 @@ const WalletCard = () => {
           </Dialog>
         </div>
 
-        {bankAccounts.length === 0 ? (
+        {data.bankAccounts.length === 0 ? (
           <p className="text-xs text-muted-foreground">No bank accounts linked yet.</p>
         ) : (
           <div className="space-y-2">
-            {bankAccounts.map((b) => (
+            {data.bankAccounts.map((b: any) => (
               <div key={b.id} className="flex items-center justify-between bg-muted/50 rounded-lg px-3 py-2">
                 <div>
                   <p className="text-sm font-medium text-foreground">{b.bank_name}</p>
@@ -241,11 +241,11 @@ const WalletCard = () => {
       </div>
 
       {/* Recent Wallet Activity */}
-      {walletTxs.length > 0 && (
+      {data.transactions.length > 0 && (
         <div className="p-4 border-t border-border">
           <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-3">Recent Activity</p>
           <div className="space-y-2">
-            {walletTxs.map((tx) => (
+            {data.transactions.map((tx: any) => (
               <div key={tx.id} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {tx.type === "credit" ? (
