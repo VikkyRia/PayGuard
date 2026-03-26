@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-[calc(100svh-64px)] flex flex-col items-center justify-center text-center overflow-hidden bg-background">
+    <section className="relative min-h-[calc(100svh-64px)] flex flex-col items-center justify-center text-center overflow-hidden bg-background max-sm:mt-10 ">
       {/* Glow effect */}
       <div className="hero-glow pointer-events-none" />
 

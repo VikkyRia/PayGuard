@@ -126,7 +126,7 @@ function ShareableLink({ tx }: { tx: any }) {
       <button
         type="button"
         onClick={() => navigator.clipboard.writeText(tx.shareable_link)}
-        className="text-xs text-primary hover:underline font-medium"
+        className="text-xs text-primary hover:underline font-medium bg-accent-foreground px-2 py-0.5 rounded"
       >
         Copy
       </button>
