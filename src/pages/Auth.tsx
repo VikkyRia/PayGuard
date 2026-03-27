@@ -157,7 +157,7 @@ const Auth = () => {
               <p className="text-sm text-muted-foreground mb-6">
                 {isLogin
                   ? "Log in to manage your transactions"
-                  : "Start trading with confidence"}
+                  : "Please provide accurate details in line with your ID for verification purposes."}
               </p>
               <form onSubmit={handleSubmit} className="space-y-4">
                 {!isLogin && (

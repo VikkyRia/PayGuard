@@ -12,6 +12,7 @@ import WalletCard from "@/components/WalletCard";
 import { statusColors } from "../lib/statusStyle-utils.ts";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import Navbar from "@/components/Dashboarad-nav";
+import {toast} from "sonner"
 const TERMINAL_STATUSES = ["completed", "refunded", "cancelled"];
 const NON_TRACKABLE_STATUSES = [
   "pending_payment",
@@ -155,14 +156,19 @@ function TransactionCardMobile({
 }
 
 function ShareableLink({ tx }: { tx: any }) {
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(tx.shareable_link);
+    toast.success("Shareable link copied to clipboard!");
+  }
   if (!tx.shareable_link)
     return <span className="text-xs text-muted-foreground">—</span>;
   return (
     <div className="flex gap-1.5">
       <button
         type="button"
-        onClick={() => navigator.clipboard.writeText(tx.shareable_link)}
-        className="text-xs text-primary hover:underline font-medium bg-accent-foreground px-2 py-0.5 rounded"
+        onClick={handleCopy}
+        className="text-xs text-primary hover:underline font-medium bg-accent-foreground px-3 py-1 rounded"
       >
         Copy
       </button>
@@ -370,7 +376,12 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar userEmail={user.email ?? ""} isAdmin={isAdmin} />
+      <Navbar
+        userEmail={user.email ?? ""}
+        isAdmin={isAdmin}
+        avatarUrl={profile?.avatar_url}       
+        displayName={profile?.display_name}    
+      />
 
       <main className="container mx-auto px-4 py-6 sm:py-12">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">

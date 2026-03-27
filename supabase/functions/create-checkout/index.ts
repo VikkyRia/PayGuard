@@ -4,10 +4,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 /**
  * INTERSWITCH WEBPAY — CORRECT URLs (2024/2025 official docs)
  *
- * ✅ Sandbox payment page : https://newwebpay.qa.interswitchng.com/collections/w/pay
- * ✅ Production page      : https://newwebpay.interswitchng.com/collections/w/pay
+ * Sandbox payment page : https://newwebpay.qa.interswitchng.com/collections/w/pay
+ * Production page      : https://newwebpay.interswitchng.com/collections/w/pay
  *
- * ❌ OLD sandbox.interswitchng.com/collections/w/pay  ← DEPRECATED
+ *  OLD sandbox.interswitchng.com/collections/w/pay  ← DEPRECATED
  *    Returns an HTML cookie-consent page instead of the payment UI.
  *    This was the root cause of the "We use cookies..." error.
  *

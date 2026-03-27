@@ -1,12 +1,7 @@
 import { useState, useMemo } from "react";
 import { useAuth } from "@/contexts/useAuth";
 import { Navigate, useNavigate } from "react-router-dom";
-import {
-  Package,
-  ShieldAlert,
-  CheckCircle2,
-  Search,
-} from "lucide-react";
+import { Package, ShieldAlert, CheckCircle2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useBuyerDashboardData } from "@/hooks/useBuyerDashboardData";
@@ -16,7 +11,6 @@ import { statusColors } from "@/lib/statusStyle-utils";
 import { InspectionTimer } from "@/components/InspectionTimer";
 import Navbar from "@/components/Dashboarad-nav";
 import { toast } from "sonner";
-
 
 const STATUS_STEPS = [
   "pending_payment",
@@ -285,6 +279,7 @@ const BuyerDashboard = () => {
     transactions,
     loading: dataLoading,
     refresh,
+    profile,
   } = useBuyerDashboardData();
   const [activeTab, setActiveTab] = useState<
     "all" | "active" | "completed" | "disputed"
@@ -316,7 +311,12 @@ const BuyerDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar userEmail={user.email || ""} isAdmin={isAdmin} />
+      <Navbar
+        userEmail={user.email ?? ""}
+        isAdmin={isAdmin}
+        avatarUrl={profile?.avatar_url}
+        displayName={profile?.display_name}
+      />
       <main className="max-w-4xl mx-auto p-4 sm:p-8">
         <header className="mb-8">
           <h1 className="text-3xl font-extrabold tracking-tight">
