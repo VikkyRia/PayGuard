@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { transactionService } from "@/services/transaction.service";
 import { toast } from "sonner";
+import { toast } from "sonner";
 
 export function useTransactionActions(refresh: () => Promise<void>) {
   const [loading, setLoading] = useState(false);
@@ -37,7 +38,7 @@ export function useTransactionActions(refresh: () => Promise<void>) {
       await transactionService.cancelTransaction(transactionId, reason);
       await refresh();
       toast.success("Transaction cancelled", {
-        description: "The transaction has been cancelled.",
+        description: "The transaction has been successfully cancelled.",
       });
     } catch (err) {
       handleError("Could not cancel transaction", err);
