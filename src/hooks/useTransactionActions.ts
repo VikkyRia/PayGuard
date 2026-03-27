@@ -13,9 +13,8 @@ export function useTransactionActions(refresh: () => Promise<void>) {
       setLoading(true);
       await transactionService.editTransaction(transactionId, updates);
       await refresh();
-      toast ({
-        title: "Transaction updated",
-        description: "Your changes have been saved successfully.",
+      toast.success("Transaction updated", {
+        description: "Your changes have been saved.",
       });
     } catch (err: any) {
       toast.error("Could not update transaction", {
@@ -31,15 +30,12 @@ export function useTransactionActions(refresh: () => Promise<void>) {
       setLoading(true);
       await transactionService.cancelTransaction(transactionId, reason);
       await refresh();
-      toast({
-        title: "Transaction cancelled",
-        description: "The transaction has been cancelled successfully.",
+      toast.success("Transaction cancelled", {
+        description: "The transaction has been cancelled.",
       });
     } catch (err: any) {
-      toast({
-        title: "Could not cancel transaction",
+      toast.error("Could not cancel transaction", {
         description: err.message,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -54,15 +50,12 @@ export function useTransactionActions(refresh: () => Promise<void>) {
       setLoading(true);
       await transactionService.addTrackingNumber(transactionId, trackingNumber);
       await refresh();
-      toast({
-        title: "Tracking number added",
-        description: "Buyer has been notified that the item is on the way.",
+      toast.success("Tracking number added", {
+        description: "The buyer can now see the tracking information.",
       });
     } catch (err: any) {
-      toast({
-        title: "Could not add tracking number",
+      toast.error("Could not add tracking number", {
         description: err.message,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -74,15 +67,12 @@ export function useTransactionActions(refresh: () => Promise<void>) {
       setLoading(true);
       await transactionService.confirmDelivery(transactionId);
       await refresh();
-      toast({
-        title: "Delivery confirmed",
-        description: "Funds have been released to the seller.",
+      toast.success("Delivery confirmed", {
+        description: "Funds are now in escrow. Inspection window has started.",
       });
     } catch (err: any) {
-      toast({
-        title: "Could not confirm delivery",
+      toast.error("Could not confirm delivery", { 
         description: err.message,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -98,15 +88,12 @@ export function useTransactionActions(refresh: () => Promise<void>) {
       setLoading(true);
       await transactionService.raiseDispute(transactionId, reason, evidenceUrls);
       await refresh();
-      toast({
-        title: "Dispute raised",
-        description: "Funds are frozen. Our team will review your case within 24 hours.",
+      toast.success("Dispute raised", {
+        description: "The support team has been notified and will review your case.",
       });
     } catch (err: any) {
-      toast({
-        title: "Could not raise dispute",
+      toast.error("Could not raise dispute", {
         description: err.message,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
