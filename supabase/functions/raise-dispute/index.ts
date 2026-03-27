@@ -92,7 +92,6 @@ serve(async (req) => {
       .eq("id", transaction_id);
 
     // Fire SMS notification (non-blocking)
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     fetch(`${supabaseUrl}/functions/v1/send-notification`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}` },

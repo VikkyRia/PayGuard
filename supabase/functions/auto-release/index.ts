@@ -34,9 +34,7 @@ serve(async (req) => {
     } else {
       query = query.lt("inspection_deadline", now);
     }
-
-    const { data: expiredTransactions, error: fetchError } = await query;
-    const { data: expiredTransactions, error: fetchError } = await serviceClient
+    const { data: expiredTransactions, error: fetchError } = transactionId ?  await query : await serviceClient
       .from("transactions")
       .select("id, seller_id, amount, fee, item_name, reference_code")
       .eq("status", "inspection")

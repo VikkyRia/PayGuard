@@ -16,7 +16,7 @@ export type TransactionInsert = {
 };
 
 const triggerAutoRelease = async (transactionId: string) => {
-  // We call the Edge Function by its name (e.g., 'auto-release')
+  // We call the Edge Function by its name and pass the transaction ID in the body. The function will verify the transaction's current state and release funds if appropriate.
   const { data, error } = await supabase.functions.invoke('auto-release', {
     body: { transactionId }, // Pass the specific ID to release
   });
@@ -26,7 +26,7 @@ const triggerAutoRelease = async (transactionId: string) => {
 };
 
 export const transactionService = {
-  // ─── Seller: check KYC ──────────────────────────────────────────────────────
+  // Seller: check KYC
   getUserVerification: async (
     userId: string
   ): Promise<{ bvn_verified: boolean; nin_verified: boolean }> => {
@@ -40,7 +40,7 @@ export const transactionService = {
     return data;
   },
 
-  // ─── Seller: create transaction & shareable link ─────────────────────────────
+  // Seller: create transaction & shareable link 
   createTransaction: async (
     userid: string,
     itemDetails: { name: string; description: string; amount: number }
@@ -82,7 +82,7 @@ export const transactionService = {
     return shareableLink;
   },
 
-  // ─── Seller: edit (only while pending_payment) ───────────────────────────────
+  //  Seller: edit (only while pending_payment) 
   editTransaction: async (
     transactionId: string,
     updates: { item_name?: string; item_description?: string }
@@ -108,7 +108,7 @@ export const transactionService = {
     return data;
   },
 
-  // ─── Seller: cancel (only while pending_payment) ─────────────────────────────
+  // Seller: cancel (only while pending_payment)
   cancelTransaction: async (transactionId: string, reason: string) => {
     const { data: tx, error: fetchError } = await supabase
       .from("transactions")
@@ -137,7 +137,7 @@ export const transactionService = {
     return data;
   },
 
-  // ─── Seller: add tracking number → status: shipped ───────────────────────────
+  // ─── Seller: add tracking number - status: shipped ───────────────────────────
   addTrackingNumber: async (transactionId: string, trackingNumber: string) => {
     const { data: tx, error: fetchError } = await supabase
       .from("transactions")
@@ -160,9 +160,9 @@ export const transactionService = {
     return data;
   },
 
-  // ─── Buyer: confirm physical receipt → status: delivered then inspection ──────
+  // ─── Buyer: confirm physical receipt - status: delivered then inspection ──────
   //
-  //   Flow: shipped → delivered → inspection
+  //   Flow: shipped - delivered - inspection
   //   We set status to "inspection" immediately and stamp the deadline.
   //   The "delivered" status is a transient step stored on the way in so the
   //   seller gets a clear "item received" signal before inspection starts.
@@ -203,7 +203,7 @@ export const transactionService = {
     return data;
   },
 
-  // ─── Buyer: confirm delivery satisfaction → status: completed ─────────────────
+  //  Buyer: confirm delivery satisfaction → status: completed 
   //   Called when the buyer is happy with the item during the inspection window.
   //   Also called automatically if the inspection deadline has passed (server-side
   //   edge function should handle this, but we also check client-side on load).
@@ -223,9 +223,8 @@ export const transactionService = {
     return await triggerAutoRelease(transactionId);
   },
 
-// ─── Auto-complete if inspection deadline has passed ─────────────────────
-  //   Call this on page load for any "inspection" transaction. Your Supabase
-  //   edge function / cron job should also do this server-side.
+// Auto-complete if inspection deadline has passed 
+
   autoCompleteIfExpired: async (transactionId: string) => {
     const { data: tx, error: fetchError } = await supabase
       .from("transactions")
