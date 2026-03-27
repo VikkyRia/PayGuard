@@ -1,11 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
-
+const baseUrl = import.meta.env.VITE_SITE_URL  ? import.meta.env.VITE_SITE_URL : "https://pay-guard-xi.vercel.app/"
 export const paymentService = {
   async initiateCheckout(transactionId: string) {
     const { data, error } = await supabase.functions.invoke("create-checkout", {
       body: {
         transaction_id: transactionId,
-        redirect_url: `${window.location.origin}/pay/${transactionId}`,
+        redirect_url: `${baseUrl}/pay/${transactionId}`,
       },
     });
     if (error) throw error;

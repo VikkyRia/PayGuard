@@ -1,15 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/useAuth";
-import { Navigate, Link, useNavigate } from "react-router-dom";
-import {
-  LogOut,
-  User,
-  LayoutDashboard,
-  Plus,
-  ShieldCheck,
-  Wallet,
-  Truck,
-} from "lucide-react";
+import { Navigate, useNavigate } from "react-router-dom";
+import { Plus, ShieldCheck, Wallet, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CreateTransactionForm from "@/components/CreateTransactionForm";
 import EditTransactionForm from "@/components/EditTransactionForm";
@@ -19,7 +11,7 @@ import WhatsAppShareButton from "@/components/WhatsAppShareButton";
 import WalletCard from "@/components/WalletCard";
 import { statusColors } from "../lib/statusStyle-utils.ts";
 import { useDashboardData } from "@/hooks/useDashboardData";
-import {toast} from "sonner"; 
+import Navbar from "@/components/Dashboarad-nav";
 const TERMINAL_STATUSES = ["completed", "refunded", "cancelled"];
 const NON_TRACKABLE_STATUSES = [
   "pending_payment",
@@ -27,44 +19,6 @@ const NON_TRACKABLE_STATUSES = [
   "refunded",
   "completed",
 ];
-
-function Navbar({
-  userEmail,
-  isAdmin,
-}: {
-  userEmail: string;
-  isAdmin: boolean;
-}) {
-  const { signOut } = useAuth();
-  return (
-    <nav className="border-b border-border bg-background/85 backdrop-blur-xl sticky top-0 z-50">
-      <div className="container mx-auto flex items-center justify-between h-16 px-4">
-        <Link
-          to="/"
-          className="font-display text-xl font-extrabold text-foreground"
-        >
-          Pay<span className="text-primary">Guard</span>
-        </Link>
-        <div className="flex items-center gap-3">
-          {isAdmin && (
-            <Link to="/admin">
-              <Button variant="outline" size="sm">
-                <LayoutDashboard className="h-4 w-4 mr-1" /> Admin
-              </Button>
-            </Link>
-          )}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <User className="h-4 w-4" />
-            <span className="hidden sm:inline">{userEmail}</span>
-          </div>
-          <Button variant="ghost" size="sm" onClick={signOut}>
-            <LogOut className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-    </nav>
-  );
-}
 
 function StatsRow({
   transactions,
@@ -201,21 +155,16 @@ function TransactionCardMobile({
 }
 
 function ShareableLink({ tx }: { tx: any }) {
-  const handleCopyLink = () => {
-    if (!tx.shareable_link) return;
-    navigator.clipboard.writeText(tx.shareable_link);
-    toast.success("Link copied to clipboard!");
-  };
   if (!tx.shareable_link)
     return <span className="text-xs text-muted-foreground">—</span>;
   return (
     <div className="flex gap-1.5">
       <button
         type="button"
-        onClick={handleCopyLink}
+        onClick={() => navigator.clipboard.writeText(tx.shareable_link)}
         className="text-xs text-primary hover:underline font-medium bg-accent-foreground px-2 py-0.5 rounded"
       >
-        Copy Link
+        Copy
       </button>
       <WhatsAppShareButton
         link={tx.shareable_link}
@@ -391,7 +340,7 @@ function StatsSkeleton() {
 }
 
 const Dashboard = () => {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, isAdmin, loading, userType } = useAuth();
   const {
     transactions,
     profile,
@@ -417,6 +366,7 @@ const Dashboard = () => {
   if (!user) return <Navigate to="/auth" replace />;
 
   const isKYCVerified = profile?.bvn_verified || profile?.nin_verified;
+  if (userType === "buyer") return <Navigate to="/buyer/dashboard" replace />;
 
   return (
     <div className="min-h-screen bg-background">
@@ -488,7 +438,7 @@ const Dashboard = () => {
               Edit Transaction
             </h2>
             <p className="text-sm text-muted-foreground mb-4 sm:mb-6">
-              You can only edit the name and description.
+              Update your item details.
             </p>
             <EditTransactionForm
               transaction={editingTransaction}
@@ -532,7 +482,7 @@ const Dashboard = () => {
             userId={user.id}
             onUpdated={refresh}
             onCreateClick={() => setShowForm(true)}
-            onEditClick={(tx) => setEditingTransaction(tx)} // ← the missing piece
+            onEditClick={(tx) => setEditingTransaction(tx)} 
           />
         )}
       </main>

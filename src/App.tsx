@@ -11,7 +11,7 @@ import PaymentLink from "./pages/PaymentLink";
 import ResetPassword from "./pages/ResetPassword";
 import TransactionDetail from "./pages/TransactionDetail";
 import NotFound from "./pages/NotFound";
-
+import BuyerDashboard from "./pages/BuyerDashboard.tsx";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -28,6 +28,7 @@ const App = () => (
             <Route path="/pay/:id" element={<PaymentLink />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/transaction/:id" element={<TransactionDetail />} />
+            <Route path="/buyer/dashboard" element={<BuyerDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

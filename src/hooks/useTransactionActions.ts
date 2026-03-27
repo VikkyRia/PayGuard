@@ -2,16 +2,13 @@ import { useState } from "react";
 import { transactionService } from "@/services/transaction.service";
 import { toast } from "sonner";
 
-
 export function useTransactionActions(refresh: () => Promise<void>) {
   const [loading, setLoading] = useState(false);
 
-  // Helper to handle error messaging safely
-  const handleError = (title: string, err: any) => {
-    const message = err?.message || "Something went wrong";
-    toast.error(title, {
-      description: message,
-    });
+  const handleError = (title: string, err: unknown) => {
+    const message =
+      err instanceof Error ? err.message : "Something went wrong";
+    toast.error(title, { description: message });
   };
 
   const editTransaction = async (
@@ -65,13 +62,31 @@ export function useTransactionActions(refresh: () => Promise<void>) {
     }
   };
 
+  // Buyer confirms physical receipt → triggers inspection window
+  const confirmReceipt = async (transactionId: string) => {
+    try {
+      setLoading(true);
+      await transactionService.confirmReceipt(transactionId);
+      await refresh();
+      toast.success("Receipt confirmed", {
+        description:
+          "A 48-hour inspection window has started. Confirm or dispute before it expires.",
+      });
+    } catch (err) {
+      handleError("Could not confirm receipt", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Buyer is satisfied with item → releases funds to seller
   const confirmDelivery = async (transactionId: string) => {
     try {
       setLoading(true);
       await transactionService.confirmDelivery(transactionId);
       await refresh();
       toast.success("Delivery confirmed", {
-        description: "Funds are now in escrow. Inspection window has started.",
+        description: "Funds have been released to the seller. Thank you!",
       });
     } catch (err) {
       handleError("Could not confirm delivery", err);
@@ -80,17 +95,24 @@ export function useTransactionActions(refresh: () => Promise<void>) {
     }
   };
 
+  // raisedBy must be the current user's id — pass it from the calling component
   const raiseDispute = async (
     transactionId: string,
+    raisedBy: string,
     reason: string,
     evidenceUrls: string[] = []
   ) => {
     try {
       setLoading(true);
-      await transactionService.raiseDispute(transactionId, reason, evidenceUrls);
+      await transactionService.raiseDispute(
+        transactionId,
+        raisedBy,
+        reason,
+        evidenceUrls
+      );
       await refresh();
       toast.success("Dispute raised", {
-        description: "The support team has been notified.",
+        description: "The support team has been notified and will review shortly.",
       });
     } catch (err) {
       handleError("Could not raise dispute", err);
@@ -104,6 +126,7 @@ export function useTransactionActions(refresh: () => Promise<void>) {
     editTransaction,
     cancelTransaction,
     addTrackingNumber,
+    confirmReceipt,
     confirmDelivery,
     raiseDispute,
   };

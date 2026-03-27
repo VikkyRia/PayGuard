@@ -13,6 +13,7 @@ serve(async (req) => {
   }
 
   try {
+    const { transactionId } = await req.json().catch(() => ({})); // Get ID from frontend
     const serviceClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -20,7 +21,21 @@ serve(async (req) => {
 
     // Find all transactions where inspection_deadline has passed and status is still "inspection"
     const now = new Date().toISOString();
-    
+    // BUILD THE QUERY: 
+    // If a transactionId is passed, we target ONLY that one.
+    // Otherwise, we look for ALL expired inspections (the Cron Job mode).
+    let query = serviceClient
+      .from("transactions")
+      .select("id, seller_id, amount, fee, item_name, reference_code")
+      .eq("status", "inspection");
+
+    if (transactionId) {
+      query = query.eq("id", transactionId);
+    } else {
+      query = query.lt("inspection_deadline", now);
+    }
+
+    const { data: expiredTransactions, error: fetchError } = await query;
     const { data: expiredTransactions, error: fetchError } = await serviceClient
       .from("transactions")
       .select("id, seller_id, amount, fee, item_name, reference_code")
