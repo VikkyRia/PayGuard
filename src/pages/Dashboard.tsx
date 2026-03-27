@@ -201,16 +201,21 @@ function TransactionCardMobile({
 }
 
 function ShareableLink({ tx }: { tx: any }) {
+  const handleCopyLink = () => {
+    if (!tx.shareable_link) return;
+    navigator.clipboard.writeText(tx.shareable_link);
+    toast.success("Link copied to clipboard!");
+  };
   if (!tx.shareable_link)
     return <span className="text-xs text-muted-foreground">—</span>;
   return (
     <div className="flex gap-1.5">
       <button
         type="button"
-        onClick={() => navigator.clipboard.writeText(tx.shareable_link)}
+        onClick={handleCopyLink}
         className="text-xs text-primary hover:underline font-medium bg-accent-foreground px-2 py-0.5 rounded"
       >
-        Copy
+        Copy Link
       </button>
       <WhatsAppShareButton
         link={tx.shareable_link}
