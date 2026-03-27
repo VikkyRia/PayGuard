@@ -2,15 +2,13 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const transactionService = {
 
-  // Edit transaction — only allowed when status is pending_payment
   async editTransaction(
     transactionId: string,
     updates: { item_name?: string; item_description?: string }
   ) {
-    // First check the status
     const { data: tx, error: fetchError } = await supabase
       .from("transactions")
-      .select("status, seller_id")
+      .select("status")
       .eq("id", transactionId)
       .maybeSingle();
 
@@ -21,10 +19,7 @@ export const transactionService = {
 
     const { data, error } = await supabase
       .from("transactions")
-      .update({
-        ...updates,
-        last_edited_at: new Date().toISOString(),
-      })
+      .update({ ...updates })
       .eq("id", transactionId)
       .select()
       .single();
@@ -33,7 +28,6 @@ export const transactionService = {
     return data;
   },
 
-  // Cancel transaction — only allowed when status is pending_payment
   async cancelTransaction(transactionId: string, reason: string) {
     const { data: tx, error: fetchError } = await supabase
       .from("transactions")
@@ -48,11 +42,7 @@ export const transactionService = {
 
     const { data, error } = await supabase
       .from("transactions")
-      .update({
-        status: "cancelled",
-        cancelled_at: new Date().toISOString(),
-        cancel_reason: reason,
-      })
+      .update({ status: "cancelled" })
       .eq("id", transactionId)
       .select()
       .single();
@@ -61,7 +51,6 @@ export const transactionService = {
     return data;
   },
 
-  // Add tracking number after shipping
   async addTrackingNumber(transactionId: string, trackingNumber: string) {
     const { data: tx, error: fetchError } = await supabase
       .from("transactions")
@@ -76,10 +65,7 @@ export const transactionService = {
 
     const { data, error } = await supabase
       .from("transactions")
-      .update({
-        tracking_number: trackingNumber,
-        status: "shipped",
-      })
+      .update({ status: "shipped" })
       .eq("id", transactionId)
       .select()
       .single();
@@ -88,7 +74,6 @@ export const transactionService = {
     return data;
   },
 
-  // Confirm delivery — buyer confirms they received the item
   async confirmDelivery(transactionId: string) {
     const { data: tx, error: fetchError } = await supabase
       .from("transactions")
@@ -103,10 +88,7 @@ export const transactionService = {
 
     const { data, error } = await supabase
       .from("transactions")
-      .update({
-        status: "completed",
-        inspection_deadline: new Date().toISOString(),
-      })
+      .update({ status: "completed" })
       .eq("id", transactionId)
       .select()
       .single();
@@ -115,7 +97,6 @@ export const transactionService = {
     return data;
   },
 
-  // Raise a dispute
   async raiseDispute(
     transactionId: string,
     reason: string,
@@ -132,17 +113,16 @@ export const transactionService = {
       throw new Error("Cannot raise a dispute on a completed or cancelled transaction");
     }
 
-    // Freeze the transaction
+    if (!tx.buyer_id) throw new Error("No buyer found on this transaction");
+
     await supabase
       .from("transactions")
       .update({ status: "disputed" })
       .eq("id", transactionId);
 
-    // Create dispute ticket
     const { data, error } = await supabase
       .from("disputes")
       .insert({
-        transaction_id: transactionId,
         raised_by: tx.buyer_id,
         reason,
         evidence_urls: evidenceUrls,
