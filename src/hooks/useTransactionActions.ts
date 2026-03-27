@@ -1,9 +1,17 @@
 import { useState } from "react";
 import { transactionService } from "@/services/transaction.service";
-import {toast} from "sonner";
+import { toast } from "sonner";
 
 export function useTransactionActions(refresh: () => Promise<void>) {
   const [loading, setLoading] = useState(false);
+
+  // Helper to handle error messaging safely
+  const handleError = (title: string, err: any) => {
+    const message = err?.message || "Something went wrong";
+    toast.error(title, {
+      description: message,
+    });
+  };
 
   const editTransaction = async (
     transactionId: string,
@@ -16,10 +24,8 @@ export function useTransactionActions(refresh: () => Promise<void>) {
       toast.success("Transaction updated", {
         description: "Your changes have been saved.",
       });
-    } catch (err: any) {
-      toast.error("Could not update transaction", {
-        description: err.message,
-      });
+    } catch (err) {
+      handleError("Could not update transaction", err);
     } finally {
       setLoading(false);
     }
@@ -33,10 +39,8 @@ export function useTransactionActions(refresh: () => Promise<void>) {
       toast.success("Transaction cancelled", {
         description: "The transaction has been cancelled.",
       });
-    } catch (err: any) {
-      toast.error("Could not cancel transaction", {
-        description: err.message,
-      });
+    } catch (err) {
+      handleError("Could not cancel transaction", err);
     } finally {
       setLoading(false);
     }
@@ -53,10 +57,8 @@ export function useTransactionActions(refresh: () => Promise<void>) {
       toast.success("Tracking number added", {
         description: "The buyer can now see the tracking information.",
       });
-    } catch (err: any) {
-      toast.error("Could not add tracking number", {
-        description: err.message,
-      });
+    } catch (err) {
+      handleError("Could not add tracking number", err);
     } finally {
       setLoading(false);
     }
@@ -70,10 +72,8 @@ export function useTransactionActions(refresh: () => Promise<void>) {
       toast.success("Delivery confirmed", {
         description: "Funds are now in escrow. Inspection window has started.",
       });
-    } catch (err: any) {
-      toast.error("Could not confirm delivery", { 
-        description: err.message,
-      });
+    } catch (err) {
+      handleError("Could not confirm delivery", err);
     } finally {
       setLoading(false);
     }
@@ -89,12 +89,10 @@ export function useTransactionActions(refresh: () => Promise<void>) {
       await transactionService.raiseDispute(transactionId, reason, evidenceUrls);
       await refresh();
       toast.success("Dispute raised", {
-        description: "The support team has been notified and will review your case.",
+        description: "The support team has been notified.",
       });
-    } catch (err: any) {
-      toast.error("Could not raise dispute", {
-        description: err.message,
-      });
+    } catch (err) {
+      handleError("Could not raise dispute", err);
     } finally {
       setLoading(false);
     }
