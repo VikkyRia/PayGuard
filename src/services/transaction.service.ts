@@ -47,7 +47,7 @@ export const transactionService = {
         seller_id: userid,
         item_name: itemDetails.name,
         item_description: itemDetails.description,
-        amount: itemDetails.price,
+        amount: itemDetails.amount,
         status: "pending_payment", // will be set when a buyer pays
       })
       .select()
@@ -198,10 +198,12 @@ export const transactionService = {
       .eq("id", transactionId)
       .maybeSingle();
 
-    if (fetchError || !tx) throw new Error("Transaction not found");
-    if (tx.status === "completed" || tx.status === "cancelled") {
-      throw new Error("Cannot raise a dispute on a completed or cancelled transaction");
+    if (fetchError || !tx || !tx.buyer_id) throw new Error("Transaction not found");
+  if (tx.status === "completed" || tx.status === "cancelled" || tx.status === "disputed") {
+      throw new Error("Cannot raise a dispute on a completed, cancelled, or disputed transaction");
     }
+
+
 
     // Freeze the transaction
     await supabase
@@ -209,6 +211,7 @@ export const transactionService = {
       .update({ status: "disputed" })
       .eq("id", transactionId);
 
+    
     // Create dispute ticket
     const { data, error } = await supabase
       .from("disputes")
