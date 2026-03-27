@@ -1,9 +1,18 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/useAuth";
 import { Navigate, Link, useNavigate } from "react-router-dom";
-import { LogOut, User, LayoutDashboard, Plus, ShieldCheck, Wallet, Truck } from "lucide-react";
+import {
+  LogOut,
+  User,
+  LayoutDashboard,
+  Plus,
+  ShieldCheck,
+  Wallet,
+  Truck,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CreateTransactionForm from "@/components/CreateTransactionForm";
+import EditTransactionForm from "@/components/EditTransactionForm";
 import TransactionActions from "@/components/TransactionActions";
 import KYCVerification from "@/components/KYCVerification";
 import WhatsAppShareButton from "@/components/WhatsAppShareButton";
@@ -11,19 +20,29 @@ import WalletCard from "@/components/WalletCard";
 import { statusColors } from "../lib/statusStyle-utils.ts";
 import { useDashboardData } from "@/hooks/useDashboardData";
 
-// Constants
-
 const TERMINAL_STATUSES = ["completed", "refunded", "cancelled"];
-const NON_TRACKABLE_STATUSES = ["pending_payment", "cancelled", "refunded", "completed"];
+const NON_TRACKABLE_STATUSES = [
+  "pending_payment",
+  "cancelled",
+  "refunded",
+  "completed",
+];
 
-// ─── Sub-components ─────────────
-
-function Navbar({ userEmail, isAdmin }: { userEmail: string; isAdmin: boolean }) {
+function Navbar({
+  userEmail,
+  isAdmin,
+}: {
+  userEmail: string;
+  isAdmin: boolean;
+}) {
   const { signOut } = useAuth();
   return (
     <nav className="border-b border-border bg-background/85 backdrop-blur-xl sticky top-0 z-50">
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
-        <Link to="/" className="font-display text-xl font-extrabold text-foreground">
+        <Link
+          to="/"
+          className="font-display text-xl font-extrabold text-foreground"
+        >
           Pay<span className="text-primary">Guard</span>
         </Link>
         <div className="flex items-center gap-3">
@@ -47,8 +66,16 @@ function Navbar({ userEmail, isAdmin }: { userEmail: string; isAdmin: boolean })
   );
 }
 
-function StatsRow({ transactions, profile }: { transactions: any[]; profile: any }) {
-  const active = transactions.filter((t) => !TERMINAL_STATUSES.includes(t.status)).length;
+function StatsRow({
+  transactions,
+  profile,
+}: {
+  transactions: any[];
+  profile: any;
+}) {
+  const active = transactions.filter(
+    (t) => !TERMINAL_STATUSES.includes(t.status),
+  ).length;
   const completed = transactions.filter((t) => t.status === "completed").length;
   const escrowTotal = transactions
     .filter((t) => t.status === "funded")
@@ -56,26 +83,53 @@ function StatsRow({ transactions, profile }: { transactions: any[]; profile: any
   const trustScore = Number(profile?.trust_score || 5);
 
   const stats = [
-    { label: "In Escrow", value: `₦${escrowTotal.toLocaleString()}`, sub: `${active} active` },
+    {
+      label: "In Escrow",
+      value: `₦${escrowTotal.toLocaleString()}`,
+      sub: `${active} active`,
+    },
     { label: "Completed", value: completed.toString(), sub: "settled" },
-    { label: "Trust", value: trustScore.toFixed(0), sub: trustScore >= 8 ? "Excellent" : "Building" },
+    {
+      label: "Trust",
+      value: trustScore.toFixed(0),
+      sub: trustScore >= 8 ? "Excellent" : "Building",
+    },
   ];
 
   return (
     <div className="grid grid-cols-3 gap-2 sm:gap-5 mb-6 sm:mb-8">
       {stats.map((stat) => (
-        <div key={stat.label} className="bg-card rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-border">
-          <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider font-medium">{stat.label}</p>
-          <p className="font-display text-lg sm:text-3xl font-extrabold text-foreground mt-1 sm:mt-2">{stat.value}</p>
-          <p className="text-[10px] sm:text-xs text-[hsl(160,60%,45%)] mt-0.5 sm:mt-1">{stat.sub}</p>
+        <div
+          key={stat.label}
+          className="bg-card rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-border"
+        >
+          <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider font-medium">
+            {stat.label}
+          </p>
+          <p className="font-display text-lg sm:text-3xl font-extrabold text-foreground mt-1 sm:mt-2">
+            {stat.value}
+          </p>
+          <p className="text-[10px] sm:text-xs text-[hsl(160,60%,45%)] mt-0.5 sm:mt-1">
+            {stat.sub}
+          </p>
         </div>
       ))}
     </div>
   );
 }
 
-// Mobile card with all actions visible, desktop table with actions in dropdown to save space
-function TransactionCardMobile({ tx, userId, onUpdated }: { tx: any; userId: string; onUpdated: () => void }) {
+// Mobile card view of a transaction. Receives onEditClick and passes it down to TransactionActions, which will render the Edit button when appropriate. Clicking the Edit button will trigger the onEditClick callback with the transaction data, allowing the parent component (Dashboard) to open the edit form with the correct transaction details.
+function TransactionCardMobile({
+  tx,
+  userId,
+  onUpdated,
+  onEditClick,
+}: {
+  tx: any;
+  userId: string;
+  onUpdated: () => void;
+  onEditClick: (tx: any) => void; // ← added
+}) {
   const navigate = useNavigate();
   return (
     <div
@@ -85,20 +139,41 @@ function TransactionCardMobile({ tx, userId, onUpdated }: { tx: any; userId: str
       <div className="flex items-start justify-between">
         <div>
           <p className="font-medium text-foreground">{tx.item_name}</p>
-          <p className="font-mono text-xs text-muted-foreground">{tx.reference_code}</p>
+          <p className="font-mono text-xs text-muted-foreground">
+            {tx.reference_code}
+          </p>
         </div>
-        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColors[tx.status] ?? ""}`}>
+        <span
+          className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColors[tx.status] ?? ""}`}
+        >
           {tx.status.replace(/_/g, " ")}
         </span>
       </div>
       <div className="flex items-center justify-between">
-        <p className="font-display text-lg font-bold text-foreground">₦{Number(tx.amount).toLocaleString()}</p>
-        <p className="text-xs text-muted-foreground">{new Date(tx.created_at).toLocaleDateString()}</p>
+        <p className="font-display text-lg font-bold text-foreground">
+          ₦{Number(tx.amount).toLocaleString()}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {new Date(tx.created_at).toLocaleDateString()}
+        </p>
       </div>
-      <div className="flex items-center gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
-        <TransactionActions transaction={tx} userId={userId} onUpdated={onUpdated} />
+      <div
+        className="flex items-center gap-2 flex-wrap"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <TransactionActions
+          transaction={tx}
+          userId={userId}
+          onUpdated={onUpdated}
+          onEditClick={() => onEditClick(tx)} // ← wired correctly
+        />
         {!NON_TRACKABLE_STATUSES.includes(tx.status) && (
-          <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => navigate(`/transaction/${tx.id}`)}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-xs h-7"
+            onClick={() => navigate(`/transaction/${tx.id}`)}
+          >
             <Truck className="h-3 w-3 mr-1" /> Track
           </Button>
         )}
@@ -111,7 +186,13 @@ function TransactionCardMobile({ tx, userId, onUpdated }: { tx: any; userId: str
             >
               Copy Link
             </button>
-            <WhatsAppShareButton link={tx.shareable_link} itemName={tx.item_name} amount={tx.amount} size="sm" className="h-6 text-xs px-2" />
+            <WhatsAppShareButton
+              link={tx.shareable_link}
+              itemName={tx.item_name}
+              amount={tx.amount}
+              size="sm"
+              className="h-6 text-xs px-2"
+            />
           </>
         )}
       </div>
@@ -120,7 +201,8 @@ function TransactionCardMobile({ tx, userId, onUpdated }: { tx: any; userId: str
 }
 
 function ShareableLink({ tx }: { tx: any }) {
-  if (!tx.shareable_link) return <span className="text-xs text-muted-foreground">—</span>;
+  if (!tx.shareable_link)
+    return <span className="text-xs text-muted-foreground">—</span>;
   return (
     <div className="flex gap-1.5">
       <button
@@ -130,12 +212,29 @@ function ShareableLink({ tx }: { tx: any }) {
       >
         Copy
       </button>
-      <WhatsAppShareButton link={tx.shareable_link} itemName={tx.item_name} amount={tx.amount} size="sm" className="h-6 text-xs px-2" />
+      <WhatsAppShareButton
+        link={tx.shareable_link}
+        itemName={tx.item_name}
+        amount={tx.amount}
+        size="sm"
+        className="h-6 text-xs px-2"
+      />
     </div>
   );
 }
 
-function TransactionTableDesktop({ transactions, userId, onUpdated }: { transactions: any[]; userId: string; onUpdated: () => void }) {
+// Desktop table view of transactions. Receives onEditClick and passes it down to TransactionActions, which will render the Edit button when appropriate. Clicking the Edit button will trigger the onEditClick callback with the transaction data, allowing the parent component (Dashboard) to open the edit form with the correct transaction details.
+function TransactionTableDesktop({
+  transactions,
+  userId,
+  onUpdated,
+  onEditClick,
+}: {
+  transactions: any[];
+  userId: string;
+  onUpdated: () => void;
+  onEditClick: (tx: any) => void; // ← added
+}) {
   const navigate = useNavigate();
   return (
     <div className="hidden md:block bg-card rounded-2xl border border-border overflow-hidden">
@@ -143,8 +242,21 @@ function TransactionTableDesktop({ transactions, userId, onUpdated }: { transact
         <table className="w-full text-sm">
           <thead className="bg-muted/50">
             <tr>
-              {["Ref", "Item", "Amount", "Status", "Actions", "Link", "Date"].map((h) => (
-                <th key={h} className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">{h}</th>
+              {[
+                "Ref",
+                "Item",
+                "Amount",
+                "Status",
+                "Actions",
+                "Link",
+                "Date",
+              ].map((h) => (
+                <th
+                  key={h}
+                  className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider"
+                >
+                  {h}
+                </th>
               ))}
             </tr>
           </thead>
@@ -155,19 +267,37 @@ function TransactionTableDesktop({ transactions, userId, onUpdated }: { transact
                 className="border-t border-border hover:bg-muted/20 transition-colors cursor-pointer"
                 onClick={() => navigate(`/transaction/${tx.id}`)}
               >
-                <td className="p-3 font-mono text-xs text-muted-foreground">{tx.reference_code}</td>
-                <td className="p-3 font-medium text-foreground">{tx.item_name}</td>
-                <td className="p-3 font-display font-bold text-foreground">₦{Number(tx.amount).toLocaleString()}</td>
+                <td className="p-3 font-mono text-xs text-muted-foreground">
+                  {tx.reference_code}
+                </td>
+                <td className="p-3 font-medium text-foreground">
+                  {tx.item_name}
+                </td>
+                <td className="p-3 font-display font-bold text-foreground">
+                  ₦{Number(tx.amount).toLocaleString()}
+                </td>
                 <td className="p-3">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColors[tx.status] ?? ""}`}>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColors[tx.status] ?? ""}`}
+                  >
                     {tx.status.replace(/_/g, " ")}
                   </span>
                 </td>
                 <td className="p-3" onClick={(e) => e.stopPropagation()}>
                   <div className="flex flex-col gap-1.5">
-                    <TransactionActions transaction={tx} userId={userId} onUpdated={onUpdated} />
+                    <TransactionActions
+                      transaction={tx}
+                      userId={userId}
+                      onUpdated={onUpdated}
+                      onEditClick={() => onEditClick(tx)} // ← wired correctly
+                    />
                     {!NON_TRACKABLE_STATUSES.includes(tx.status) && (
-                      <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => navigate(`/transaction/${tx.id}`)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs h-7"
+                        onClick={() => navigate(`/transaction/${tx.id}`)}
+                      >
                         <Truck className="h-3 w-3 mr-1" /> Track
                       </Button>
                     )}
@@ -176,7 +306,9 @@ function TransactionTableDesktop({ transactions, userId, onUpdated }: { transact
                 <td className="p-3" onClick={(e) => e.stopPropagation()}>
                   <ShareableLink tx={tx} />
                 </td>
-                <td className="p-3 text-muted-foreground text-xs">{new Date(tx.created_at).toLocaleDateString()}</td>
+                <td className="p-3 text-muted-foreground text-xs">
+                  {new Date(tx.created_at).toLocaleDateString()}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -185,14 +317,27 @@ function TransactionTableDesktop({ transactions, userId, onUpdated }: { transact
     </div>
   );
 }
-
-function TransactionList({ transactions, userId, onUpdated, onCreateClick }: {
-  transactions: any[]; userId: string; onUpdated: () => void; onCreateClick: () => void;
+// list of transactions with responsive design: cards on mobile, table on desktop. Also handles empty state and passes down edit create action correctly.
+function TransactionList({
+  transactions,
+  userId,
+  onUpdated,
+  onCreateClick,
+  onEditClick,
+}: {
+  transactions: any[];
+  userId: string;
+  onUpdated: () => void;
+  onCreateClick: () => void;
+  onEditClick: (tx: any) => void;
 }) {
   if (transactions.length === 0) {
     return (
       <div className="bg-card rounded-2xl p-8 border border-border text-center">
-        <p className="text-muted-foreground">No transactions yet. Create your first escrow transaction to get started.</p>
+        <p className="text-muted-foreground">
+          No transactions yet. Create your first escrow transaction to get
+          started.
+        </p>
         <Button className="mt-4" onClick={onCreateClick}>
           <Plus className="h-4 w-4 mr-1" /> Create Transaction
         </Button>
@@ -204,10 +349,21 @@ function TransactionList({ transactions, userId, onUpdated, onCreateClick }: {
     <>
       <div className="space-y-3 md:hidden">
         {transactions.map((tx) => (
-          <TransactionCardMobile key={tx.id} tx={tx} userId={userId} onUpdated={onUpdated} />
+          <TransactionCardMobile
+            key={tx.id}
+            tx={tx}
+            userId={userId}
+            onUpdated={onUpdated}
+            onEditClick={onEditClick} //  passed down
+          />
         ))}
       </div>
-      <TransactionTableDesktop transactions={transactions} userId={userId} onUpdated={onUpdated} />
+      <TransactionTableDesktop
+        transactions={transactions}
+        userId={userId}
+        onUpdated={onUpdated}
+        onEditClick={onEditClick} //  passed down
+      />
     </>
   );
 }
@@ -216,12 +372,12 @@ function StatsSkeleton() {
   return (
     <div className="grid grid-cols-3 gap-2 sm:gap-5 mb-6 sm:mb-8">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="bg-card rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-border animate-pulse">
-          {/* Label skeleton */}
+        <div
+          key={i}
+          className="bg-card rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-border animate-pulse"
+        >
           <div className="h-3 w-12 bg-muted rounded mb-2" />
-          {/* Value skeleton */}
           <div className="h-8 w-20 bg-muted rounded sm:mt-2" />
-          {/* Subtext skeleton */}
           <div className="h-3 w-16 bg-muted rounded mt-1 sm:mt-2" />
         </div>
       ))}
@@ -229,73 +385,119 @@ function StatsSkeleton() {
   );
 }
 
-// ─── Page
-
 const Dashboard = () => {
   const { user, isAdmin, loading } = useAuth();
-  const { transactions, profile, loading: dataLoading, refresh } = useDashboardData();
+  const {
+    transactions,
+    profile,
+    loading: dataLoading,
+    refresh,
+  } = useDashboardData();
 
   const [showForm, setShowForm] = useState(false);
   const [showKYC, setShowKYC] = useState(false);
-  const [activeTab, setActiveTab] = useState<"transactions" | "wallet">("transactions");
+  const [activeTab, setActiveTab] = useState<"transactions" | "wallet">(
+    "transactions",
+  );
+  const [editingTransaction, setEditingTransaction] = useState<any | null>(
+    null,
+  );
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><p className="text-muted-foreground">Loading...</p></div>;
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
   if (!user) return <Navigate to="/auth" replace />;
 
   const isKYCVerified = profile?.bvn_verified || profile?.nin_verified;
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar userEmail={user.email ? user.email : ""} isAdmin={isAdmin} />
+      <Navbar userEmail={user.email ?? ""} isAdmin={isAdmin} />
 
       <main className="container mx-auto px-4 py-6 sm:py-12">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-foreground mb-1">Dashboard</h1>
+            <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-foreground mb-1">
+              Dashboard
+            </h1>
             <p className="text-sm sm:text-base text-muted-foreground truncate max-w-62.5 sm:max-w-none">
               Welcome back, {user.user_metadata?.display_name || user.email}.
             </p>
           </div>
           <div className="flex gap-2">
             {!isKYCVerified && (
-              <Button variant="outline" size="sm" onClick={() => setShowKYC(true)}>
-                <ShieldCheck className="h-4 w-4 mr-1" /> <span className="hidden sm:inline">Verify </span>KYC
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowKYC(true)}
+              >
+                <ShieldCheck className="h-4 w-4 mr-1" />{" "}
+                <span className="hidden sm:inline">Verify </span>KYC
               </Button>
             )}
             {!showForm && (
               <Button size="sm" onClick={() => setShowForm(true)}>
-                <Plus className="h-4 w-4 mr-1" /> New<span className="hidden sm:inline"> Transaction</span>
+                <Plus className="h-4 w-4 mr-1" /> New
+                <span className="hidden sm:inline"> Transaction</span>
               </Button>
             )}
           </div>
         </div>
 
-        {/* KYC form */}
         {showKYC && (
           <div className="mb-8">
             <KYCVerification
-              onVerified={() => { setShowKYC(false); refresh(); }}
+              onVerified={() => {
+                setShowKYC(false);
+                refresh();
+              }}
               onCancel={() => setShowKYC(false)}
             />
           </div>
         )}
 
-        {/* Create transaction form */}
         {showForm && (
           <div className="bg-card rounded-2xl p-5 sm:p-8 border border-border mb-6 sm:mb-8 max-w-lg">
-            <h2 className="font-display text-lg sm:text-xl font-bold text-foreground mb-1">Create Transaction</h2>
-            <p className="text-sm text-muted-foreground mb-4 sm:mb-6">Funds will be held safely until your buyer confirms delivery.</p>
+            <h2 className="font-display text-lg sm:text-xl font-bold text-foreground mb-1">
+              Create Transaction
+            </h2>
+            <p className="text-sm text-muted-foreground mb-4 sm:mb-6">
+              Funds will be held safely until your buyer confirms delivery.
+            </p>
             <CreateTransactionForm
-              onCreated={() => { setShowForm(false); refresh(); }}
+              onCreated={() => {
+                setShowForm(false);
+                refresh();
+              }}
               onCancel={() => setShowForm(false)}
+            />
+          </div>
+        )}
+
+        {editingTransaction && (
+          <div className="bg-card rounded-2xl p-5 sm:p-8 border border-border mb-6 sm:mb-8 max-w-lg">
+            <h2 className="font-display text-lg sm:text-xl font-bold text-foreground mb-1">
+              Edit Transaction
+            </h2>
+            <p className="text-sm text-muted-foreground mb-4 sm:mb-6">
+              You can only edit the name and description.
+            </p>
+            <EditTransactionForm
+              transaction={editingTransaction}
+              onUpdated={() => {
+                setEditingTransaction(null);
+                refresh();
+              }}
+              onCancel={() => setEditingTransaction(null)}
             />
           </div>
         )}
 
         <StatsRow transactions={transactions} profile={profile} />
 
-        {/* Tabs */}
         <div className="flex gap-1 bg-muted/50 p-1 rounded-xl w-fit mb-6">
           <button
             type="button"
@@ -313,9 +515,10 @@ const Dashboard = () => {
           </button>
         </div>
 
-        {/* Tab content */}
         {activeTab === "wallet" ? (
-          <div className="max-w-lg"><WalletCard /></div>
+          <div className="max-w-lg">
+            <WalletCard />
+          </div>
         ) : dataLoading ? (
           <StatsSkeleton />
         ) : (
@@ -324,6 +527,7 @@ const Dashboard = () => {
             userId={user.id}
             onUpdated={refresh}
             onCreateClick={() => setShowForm(true)}
+            onEditClick={(tx) => setEditingTransaction(tx)} // ← the missing piece
           />
         )}
       </main>

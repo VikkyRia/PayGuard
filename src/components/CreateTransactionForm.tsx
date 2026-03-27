@@ -17,7 +17,10 @@ const CreateTransactionForm = ({ onCreated, onCancel }: Props) => {
   const [loading, setLoading] = useState(false);
   const [shareableLink, setShareableLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [profile, setProfile] = useState<{ bvn_verified: boolean; nin_verified: boolean } | null>(null);
+  const [profile, setProfile] = useState<{
+    bvn_verified: boolean;
+    nin_verified: boolean;
+  } | null>(null);
 
   const [form, setForm] = useState({
     itemName: "",
@@ -33,9 +36,12 @@ const CreateTransactionForm = ({ onCreated, onCancel }: Props) => {
 
   useEffect(() => {
     if (!user) return;
-    transactionService.getUserVerification(user.id)
+    transactionService
+      .getUserVerification(user.id)
       .then(setProfile)
-      .catch((err) => toast.error("Verification check failed", { description: err.message }));
+      .catch((err) =>
+        toast.error("Verification check failed", { description: err.message }),
+      );
   }, [user]);
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
@@ -44,23 +50,37 @@ const CreateTransactionForm = ({ onCreated, onCancel }: Props) => {
 
     if (exceedsThreshold) {
       toast.error("Identity Verification Required", {
-        description: "Transactions above ₦50,000 require BVN or NIN verification.",
+        description:
+          "Transactions above ₦50,000 require BVN or NIN verification.",
       });
       return;
     }
 
     setLoading(true);
     try {
-      const link = await transactionService.createTransaction(user.id, {
-        itemName: form.itemName,
-        itemDescription: form.itemDescription,
+      const getLink = await transactionService.createTransaction(user.id, {
+        name: form.itemName,
+        description: form.itemDescription,
         amount: amountNum,
       });
 
+      if (!getLink) throw new Error("Failed to retrieve shareable link");
+
+      const link = getLink.shareable_link || null; // Handle possible typo in backend
       setShareableLink(link);
-      toast.success("Payment link created!", { description: "You can now share this link." });
-    } catch (error: any) {
-      toast.error("Error creating transaction", { description: error.message });
+      toast.success("Shareable link created!", {
+        description: "You can now share this link.",
+      });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error("Error creating transaction", {
+          description: error.message,
+        });
+      } else {
+        toast.error("Error creating transaction", {
+          description: "Unknown error occurred",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -82,8 +102,12 @@ const CreateTransactionForm = ({ onCreated, onCancel }: Props) => {
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
             <Link2 className="h-8 w-8 text-primary" />
           </div>
-          <h3 className="font-display text-xl font-bold text-foreground mb-2">Payment Link Ready!</h3>
-          <p className="text-sm text-muted-foreground">Share this link with your buyer on WhatsApp, Instagram, or Twitter.</p>
+          <h3 className="font-display text-xl font-bold text-foreground mb-2">
+            Payment Link Ready!
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Share this link with your buyer on WhatsApp, Instagram, or Twitter.
+          </p>
         </div>
 
         <div className="flex items-center gap-2 bg-muted rounded-xl p-3">
@@ -93,7 +117,11 @@ const CreateTransactionForm = ({ onCreated, onCancel }: Props) => {
             className="flex-1 bg-transparent text-sm text-foreground outline-none font-mono"
           />
           <Button size="sm" variant="outline" onClick={copyLink}>
-            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            {copied ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <Copy className="h-4 w-4" />
+            )}
           </Button>
         </div>
 
@@ -103,7 +131,12 @@ const CreateTransactionForm = ({ onCreated, onCancel }: Props) => {
           </Button>
           <Button
             className="flex-1"
-            onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`Pay securely via PayGuard: ${shareableLink}`)}`, "_blank")}
+            onClick={() =>
+              window.open(
+                `https://wa.me/?text=${encodeURIComponent(`Pay securely via PayGuard: ${shareableLink}`)}`,
+                "_blank",
+              )
+            }
           >
             Share on WhatsApp
           </Button>
@@ -130,7 +163,9 @@ const CreateTransactionForm = ({ onCreated, onCancel }: Props) => {
         <Textarea
           id="itemDescription"
           value={form.itemDescription}
-          onChange={(e) => setForm({ ...form, itemDescription: e.target.value })}
+          onChange={(e) =>
+            setForm({ ...form, itemDescription: e.target.value })
+          }
           placeholder="Item details, condition, what's included..."
           rows={3}
         />
@@ -157,15 +192,25 @@ const CreateTransactionForm = ({ onCreated, onCancel }: Props) => {
 
       {exceedsThreshold && (
         <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 text-sm text-destructive">
-          ⚠️ Transactions above ₦50,000 require identity verification (BVN or NIN). Please verify your identity from the dashboard first.
+          ⚠️ Transactions above ₦50,000 require identity verification (BVN or
+          NIN). Please verify your identity from the dashboard first.
         </div>
       )}
 
       <div className="flex gap-3 pt-2">
-        <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          className="flex-1"
+        >
           Cancel
         </Button>
-        <Button type="submit" disabled={loading || exceedsThreshold} className="flex-1">
+        <Button
+          type="submit"
+          disabled={loading || exceedsThreshold}
+          className="flex-1"
+        >
           {loading ? "Creating..." : "Generate Payment Link"}
         </Button>
       </div>
