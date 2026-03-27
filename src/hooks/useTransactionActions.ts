@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { transactionService } from "@/services/transaction.service";
-import { useToast } from "@/hooks/use-toast";
+import {toast} from "sonner";
 
 export function useTransactionActions(refresh: () => Promise<void>) {
-  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
   const editTransaction = async (
@@ -14,15 +13,13 @@ export function useTransactionActions(refresh: () => Promise<void>) {
       setLoading(true);
       await transactionService.editTransaction(transactionId, updates);
       await refresh();
-      toast({
+      toast ({
         title: "Transaction updated",
         description: "Your changes have been saved successfully.",
       });
     } catch (err: any) {
-      toast({
-        title: "Could not edit transaction",
+      toast.error("Could not update transaction", {
         description: err.message,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);

@@ -10,7 +10,32 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.1"
+    PostgrestVersion: "14.4"
+  }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -109,6 +134,7 @@ export type Database = {
           trust_score: number
           updated_at: string
           user_id: string
+          user_type: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -124,6 +150,7 @@ export type Database = {
           trust_score?: number
           updated_at?: string
           user_id: string
+          user_type?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -139,6 +166,7 @@ export type Database = {
           trust_score?: number
           updated_at?: string
           user_id?: string
+          user_type?: string | null
         }
         Relationships: []
       }
@@ -222,14 +250,19 @@ export type Database = {
         Row: {
           amount: number
           buyer_email: string | null
-          buyer_id: string
+          buyer_id: string | null
+          cancel_reason: string | null
+          cancelled_at: string | null
           courier_name: string | null
           created_at: string
+          delivery_otp: string | null
           fee: number
           id: string
           inspection_deadline: string | null
           item_description: string | null
           item_name: string
+          last_edited_at: string | null
+          otp_used: boolean | null
           payment_reference: string | null
           reference_code: string
           seller_id: string
@@ -241,14 +274,19 @@ export type Database = {
         Insert: {
           amount: number
           buyer_email?: string | null
-          buyer_id: string
+          buyer_id?: string | null
+          cancel_reason?: string | null
+          cancelled_at?: string | null
           courier_name?: string | null
           created_at?: string
+          delivery_otp?: string | null
           fee?: number
           id?: string
           inspection_deadline?: string | null
           item_description?: string | null
           item_name: string
+          last_edited_at?: string | null
+          otp_used?: boolean | null
           payment_reference?: string | null
           reference_code?: string
           seller_id: string
@@ -260,14 +298,19 @@ export type Database = {
         Update: {
           amount?: number
           buyer_email?: string | null
-          buyer_id?: string
+          buyer_id?: string | null
+          cancel_reason?: string | null
+          cancelled_at?: string | null
           courier_name?: string | null
           created_at?: string
+          delivery_otp?: string | null
           fee?: number
           id?: string
           inspection_deadline?: string | null
           item_description?: string | null
           item_name?: string
+          last_edited_at?: string | null
+          otp_used?: boolean | null
           payment_reference?: string | null
           reference_code?: string
           seller_id?: string
@@ -575,6 +618,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],

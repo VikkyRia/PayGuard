@@ -1,6 +1,7 @@
 // src/services/auth.ts -file path
 import { supabase } from "@/integrations/supabase/client";
-const redirectUrl = import.meta.env.VITE_SITE_URL  ? `${import.meta.env.VITE_SITE_URL}/auth/` : "https://pvc-eta.vercel.app/auth/callback"; //change later to the site host url
+const redirectUrl = import.meta.env.VITE_SITE_URL  ? `${import.meta.env.VITE_SITE_URL}/auth/` : "https://pay-guard-xi.vercel.app/auth"
+//  later to the site host url
 
 export const authService = {
   async signIn(email: string, password: string) {
