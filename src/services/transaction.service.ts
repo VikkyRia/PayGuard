@@ -1,12 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
 const baseUrl = import.meta.env.VITE_SITE_URL  ? import.meta.env.VITE_SITE_URL : "https://pay-guard-xi.vercel.app/"
-// type Profile = {
-//   id: string;
-//   user_type: "seller" | "buyer" | string;
-//   // other profile columns...
-// };
-
-
 
 export type TransactionInsert = {
   seller_id: string;
@@ -48,7 +41,7 @@ export const transactionService = {
         item_name: itemDetails.name,
         item_description: itemDetails.description,
         amount: itemDetails.amount,
-        status: "pending_payment", // will be set when a buyer pays
+        status: "pending_payment", 
       })
       .select()
       .single();
