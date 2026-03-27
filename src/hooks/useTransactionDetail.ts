@@ -21,35 +21,56 @@ export function useTransactionDetail(id: string | undefined) {
       .eq("id", id)
       .single();
 
-    if (txData) {
+    if (txData && txData.seller_id) {
       setTx(txData);
+
+      // Prepare our promises
+      const sellerPromise = supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", txData.seller_id)
+        .single();
+
+      const reviewsPromise = supabase
+        .from("reviews")
+        .select("*")
+        .eq("transaction_id", txData.id);
+
+      // Only create the buyer promise if the buyer_id actually exists
+      const buyerPromise = txData.buyer_id
+        ? supabase
+            .from("profiles")
+            .select("*")
+            .eq("user_id", txData.buyer_id)
+            .single()
+        : Promise.resolve({ data: null }); // Return a dummy "resolved" promise if no buyer
+
+      // Run them all
       const [seller, buyer, reviewsRes] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("*")
-          .eq("user_id", txData.seller_id)
-          .single(),
-        supabase
-          .from("profiles")
-          .select("*")
-          .eq("user_id", txData.buyer_id)
-          .single(),
-        supabase.from("reviews").select("*").eq("transaction_id", txData.id),
+        sellerPromise,
+        buyerPromise,
+        reviewsPromise,
       ]);
-      setSellerProfile(seller.data);
-      setBuyerProfile(buyer.data);
-      setReviews(reviewsRes.data || []);
+
+      // Set states safely
+      if (seller.data) setSellerProfile(seller.data);
+      if (buyer.data) setBuyerProfile(buyer.data);
+
+      const reviewsData = reviewsRes.data || [];
+      setReviews(reviewsData);
+
       if (user) {
-        setHasReviewed(
-          (reviewsRes.data || []).some((r: any) => r.reviewer_id === user.id),
-        );
+        setHasReviewed(reviewsData.some((r) => r.reviewer_id === user.id));
       }
     }
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchData();
+    const getData = async () => {
+      await fetchData();
+    };
+    getData();
 
     if (id) {
       const channel = supabase

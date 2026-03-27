@@ -31,6 +31,7 @@ serve(async (req) => {
   try {
     const MERCHANT_CODE = Deno.env.get("INTERSWITCH_MERCHANT_CODE");
     const PAY_ITEM_ID = Deno.env.get("INTERSWITCH_PAY_ITEM_ID");
+    const baseUrl = Deno.env.get("SITE_URL") || "https://pay-guard-xi.vercel.app/";
 
     if (!MERCHANT_CODE || !PAY_ITEM_ID) {
       throw new Error(
@@ -73,7 +74,7 @@ serve(async (req) => {
 
     const siteRedirectUrl =
       redirect_url ||
-      `${Deno.env.get("SITE_URL") || "https://your-app.lovable.app"}/pay/${transaction_id}`;
+      `${Deno.env.get("SITE_URL") || baseUrl}/pay/${transaction_id}`;
 
     console.log(
       `Checkout created: tx=${transaction_id}, ref=${txnRef}, amount=${totalKobo} kobo`
